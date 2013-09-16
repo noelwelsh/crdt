@@ -4,13 +4,21 @@ import com.twitter.algebird.{Max, Semigroup}
 import com.twitter.algebird.Operators._
 import scala.math.Ordering
 
-case class SemigroupCrdt[Id, A](val id: Id, val values: Map[Id, A] = Map.empty[Id, A])(implicit val semigroup: Semigroup[A]) {
+/**
+  * A PCounter is a CRDT counter that allows only increments.
+  *
+  * A PCounter defined for any type A for which a Semigroup[A] and Ordering[A] exists,
+  * and it is also itself a Semigroup.
+  *
+  */
+case class PCounter[Id, A](val values: Map[Id, A] = Map.empty[Id, A]) {
 
   /** "Increment" the element */
-  def +(newValue: A): SemigroupCrdt[Id, A] =
-    SemigroupCrdt(id, Map(id -> newValue) + values)
+  def +(id: Id, newValue: A)(implicit semigroup: Semigroup[A]): PCounter[Id, A] =
+    PCounter(Map(id -> newValue) + values)
 
-  def value: Option[A] =
+  /** Get the current value of the element */
+  def get(implicit semigroup: Semigroup[A]): Option[A] =
     values.foldLeft(None: Option[A])((accum, elt) =>
       accum match {
         case None    => Some(elt._2)
@@ -20,20 +28,19 @@ case class SemigroupCrdt[Id, A](val id: Id, val values: Map[Id, A] = Map.empty[I
 
 }
 
-object SemigroupCrdt {
+object PCounter {
 
-  implicit def semigroup[Id, A](implicit ordering: Ordering[A]): Semigroup[SemigroupCrdt[Id, A]] =
+  implicit def semigroup[Id, A](implicit semigroup: Semigroup[A], ordering: Ordering[A]): Semigroup[PCounter[Id, A]] =
     Semigroup.from((l, r) => {
       // Modified from MapMonoid to use largest element
       //
-      // Scala maps can reuse internal structure, so don't copy just add into the bigger one:
-      // This really saves computation when adding lots of small maps into big ones (common)
-      implicit val semigroup = l.semigroup
+      // Scala maps can reuse internal structure, so don't copy just
+      // add into the bigger one: This really saves computation when
+      // adding lots of small maps into big ones (common)
       val x = l.values
       val y = r.values
       val (big, small, bigOnLeft) = if(x.size > y.size) { (x,y,true) } else { (y,x,false) }
-      SemigroupCrdt(
-        l.id,
+      PCounter(
         small.foldLeft(big) { (oldMap, kv) =>
           val newV = big
             .get(kv._1)

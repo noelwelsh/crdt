@@ -13,16 +13,16 @@ object Build extends Build {
   lazy val algebirdCore = "com.twitter" %% "algebird-core" % "0.2.0"
 
   lazy val scalaCheck = "org.scalacheck" %% "scalacheck" % "1.10.1" % "test"
-  lazy val scalaTest  = "org.scalatest"  %% "scalatest"  % "1.9.2"  % "test"
+  lazy val specs2     = "org.specs2"     %% "specs2"     % "2.2"    % "test"
 
   lazy val crdtSettings: Seq[Setting[_]] = Seq(
     organization := "Untyped",
     scalaVersion := "2.10.2",
-    crossScalaVersions := Seq("2.9.3", "2.10.2"),
+    crossScalaVersions := Seq("2.10.2"),
     resolvers ++= crdtResolvers,
     libraryDependencies ++= Seq(
       algebirdCore,
-      scalaTest,
+      specs2,
       scalaCheck
     )
   )
