@@ -46,5 +46,5 @@ If for some reason you want to see the elements associated with machines, `value
 
 ```scala
 val counter1 = PCounter[String, Int]() + ("a", 1)
-counter1.values \\ Map[String,Int] = Map(a -> 1)
+counter1.values // Map[String,Int] = Map(a -> 1)
 ```
