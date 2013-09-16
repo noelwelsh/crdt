@@ -11,7 +11,7 @@ This library is written in Scala 2.10 and uses type classes from [Algebird](http
 
 A `PCounter` is an increment only counter. That is, it maintains a distributed counter that can only be incremented. More concretely a `PCounter` keeps a map of `Id`s to counts, where `Id`s typically refer to different machines. There are operations increment the counter for a given `Id` and to get the total of the values across all `Id`s.
 
-A `PCounter` can count any type `A` for which there is both a `Semigroup[A]` and a `Ordering[A]`. A `PCounter` is itself a commutative `Monoid`.
+A `PCounter` can count any type `A` for which there is both a commutative `Semigroup[A]` and a `Ordering[A]`. A `PCounter` is itself a commutative `Monoid`.
 
 ```scala
 import com.twitter.algebird.Semigroup
