@@ -1,6 +1,6 @@
 package crdt
 
-import com.twitter.algebird.{Max, Semigroup}
+import com.twitter.algebird.{Max, Monoid, Semigroup}
 import com.twitter.algebird.Operators._
 import scala.math.Ordering
 
@@ -8,7 +8,7 @@ import scala.math.Ordering
   * A PCounter is a CRDT counter that allows only increments.
   *
   * A PCounter defined for any type A for which a Semigroup[A] and Ordering[A] exists,
-  * and it is also itself a Semigroup. A PCounter is also commutative.
+  * and it is also itself a Monoid.
   *
   */
 case class PCounter[Id, A](val values: Map[Id, A] = Map.empty[Id, A]) {
@@ -30,8 +30,11 @@ case class PCounter[Id, A](val values: Map[Id, A] = Map.empty[Id, A]) {
 
 object PCounter {
 
-  implicit def semigroup[Id, A](implicit semigroup: Semigroup[A], ordering: Ordering[A]): Semigroup[PCounter[Id, A]] =
-    Semigroup.from((l, r) => {
+  implicit def monoid[Id, A](implicit semigroup: Semigroup[A], ordering: Ordering[A]): Monoid[PCounter[Id, A]] =
+    Monoid.from(
+      PCounter[Id,A]()
+    )(
+      (l, r) => {
       // Modified from MapMonoid to use largest element
       //
       // Scala maps can reuse internal structure, so don't copy just
