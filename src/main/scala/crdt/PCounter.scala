@@ -8,7 +8,7 @@ import scala.math.Ordering
   * A PCounter is a CRDT counter that allows only increments.
   *
   * A PCounter defined for any type A for which a Semigroup[A] and Ordering[A] exists,
-  * and it is also itself a Semigroup.
+  * and it is also itself a Semigroup. A PCounter is also commutative.
   *
   */
 case class PCounter[Id, A](val values: Map[Id, A] = Map.empty[Id, A]) {

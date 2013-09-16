@@ -1,12 +1,15 @@
 package crdt
 
 import org.specs2.mutable._
+import org.specs2.ScalaCheck
+import org.scalacheck._
+import org.scalacheck.Prop.forAll
 
 import com.twitter.algebird.Semigroup
 import com.twitter.algebird.Operators._
 import scala.math.Ordering
 
-class PCounterSpec extends Specification {
+class PCounterSpec extends Specification with ScalaCheck {
 
   "PCounter.get" should {
 
@@ -45,4 +48,43 @@ class PCounterSpec extends Specification {
 
   }
 
+
+  def associativeLaw[PCounter[_,_], Id, A](implicit
+    pcounter: Arbitrary[PCounter[Id, A]],
+    pcounterSemigroup: Semigroup[PCounter[Id, A]],
+    semigroup: Semigroup[A],
+    ordering: Ordering[A]
+  ) =
+    forAll { (p1: PCounter[Id, A], p2: PCounter[Id, A], p3: PCounter[Id, A]) =>
+      (p1 + p2) + p3 == p1 + (p2 + p3)
+    }
+
+  def commutativeLaw[PCounter[_,_], Id, A](implicit
+    pcounter: Arbitrary[PCounter[Id, A]],
+    pcounterSemigroup: Semigroup[PCounter[Id, A]],
+    semigroup: Semigroup[A],
+    ordering: Ordering[A]
+  ) =
+    forAll { (p1: PCounter[Id, A], p2: PCounter[Id, A]) =>
+      (p1 + p2) == (p1 + p2)
+    }
+
+
+  "PCounter" should {
+
+    "be associative and commutative" in {
+      val stringIntTupleGen = for {
+        string <- Gen.alphaStr
+        int    <- Gen.chooseNum(0, 65536)
+      } yield (string, int)
+
+      implicit val pcounterGen = Arbitrary {
+        for {
+          alist <- Gen.containerOf[List, (String, Int)](stringIntTupleGen)
+        } yield PCounter(Map(alist : _*))
+      }
+
+      associativeLaw && commutativeLaw
+    }
+  }
 }
