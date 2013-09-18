@@ -66,7 +66,7 @@ class PCounterSpec extends Specification with ScalaCheck {
     ordering: Ordering[A]
   ) =
     forAll { (p1: PCounter[Id, A], p2: PCounter[Id, A]) =>
-      (p1 + p2) == (p1 + p2)
+      (p1 + p2) == (p2 + p1)
     }
 
 
@@ -86,5 +86,6 @@ class PCounterSpec extends Specification with ScalaCheck {
 
       associativeLaw && commutativeLaw
     }
+
   }
 }
