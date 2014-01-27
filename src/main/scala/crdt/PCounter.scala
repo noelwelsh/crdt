@@ -18,13 +18,15 @@ case class PCounter[Id, A](val values: Map[Id, A] = Map.empty[Id, A]) {
     PCounter(Map(id -> newValue) + values)
 
   /** Get the current value of the element */
-  def get(implicit semigroup: Semigroup[A]): Option[A] =
+  def count(implicit semigroup: Semigroup[A]): Option[A] =
     values.foldLeft(None: Option[A])((accum, elt) =>
       accum match {
         case None    => Some(elt._2)
         case Some(x) => Some(x + elt._2)
       }
     )
+
+  def merge(c: PCounter[Id, A])(implicit m: Monoid[Max[A]]): PCounter[Id, A]
 
 }
 
