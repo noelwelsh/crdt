@@ -4,16 +4,16 @@ import com.twitter.algebird.{Max, Monoid, Semigroup}
 import com.twitter.algebird.Operators._
 
 /**
-  * A PCounter is a CRDT counter that allows only increments.
+  * A GCounter is a CRDT counter that allows only increments.
   *
-  * A PCounter defined for any type A for which a Monoid[A] and
+  * A GCounter defined for any type A for which a Monoid[A] and
   * Monoid[Max[A]] exists, and it is also itself a Monoid.
   */
-case class PCounter[Id, A](val values: Map[Id, A] = Map.empty[Id, A]) {
+case class GCounter[Id, A](val values: Map[Id, A] = Map.empty[Id, A]) {
 
   /** "Increment" the element */
-  def +(id: Id, newValue: A)(implicit semigroup: Semigroup[A]): PCounter[Id, A] =
-    PCounter(Map(id -> newValue) + values)
+  def +(id: Id, newValue: A)(implicit semigroup: Semigroup[A]): GCounter[Id, A] =
+    GCounter(Map(id -> newValue) + values)
 
   /** Get the current value of the counter */
   def count(implicit m: Monoid[A]): A =
@@ -21,7 +21,7 @@ case class PCounter[Id, A](val values: Map[Id, A] = Map.empty[Id, A]) {
       accum + elt._2
     )
 
-  def merge(c: PCounter[Id, A])(implicit m: Monoid[Max[A]]): PCounter[Id, A] = {
+  def merge(c: GCounter[Id, A])(implicit m: Monoid[Max[A]]): GCounter[Id, A] = {
     // Modified from MapMonoid to use largest element
     //
     // Scala maps can reuse internal structure, so don't copy just
@@ -30,7 +30,7 @@ case class PCounter[Id, A](val values: Map[Id, A] = Map.empty[Id, A]) {
     val x = this.values
     val y = c.values
     val (big, small, bigOnLeft) = if(x.size > y.size) { (x,y,true) } else { (y,x,false) }
-    PCounter(
+    GCounter(
       small.foldLeft(big) { (oldMap, kv) =>
         val newV = big
           .get(kv._1)
@@ -49,9 +49,9 @@ case class PCounter[Id, A](val values: Map[Id, A] = Map.empty[Id, A]) {
 
 }
 
-object PCounter {
+object GCounter {
 
-  implicit def monoid[Id, A](implicit m: Monoid[Max[A]]): Monoid[PCounter[Id, A]] =
-    Monoid.from( PCounter[Id,A]() )( (l, r) => { l.merge(r) } )
+  implicit def monoid[Id, A](implicit m: Monoid[Max[A]]): Monoid[GCounter[Id, A]] =
+    Monoid.from( GCounter[Id,A]() )( (l, r) => { l.merge(r) } )
 
 }
